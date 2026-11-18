@@ -20,9 +20,9 @@ class AvoBot
 		.bl = AOut{&avopwm,  5},
 		.br = AOut{&avopwm,  6},
 
-		.clock  = DOut{ 4},
-		.data   = DOut{ 8},
-		.latch  = DOut{12},
+		.clock   = DOut{ 4},
+		.data    = DOut{ 8},
+		.latch   = DOut{12},
 		.disable = DOut{ 7}
 	};
 

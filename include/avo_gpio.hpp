@@ -24,7 +24,7 @@ struct PWMData
 
 	/** \param duty_cycle from 0 to 1 */
 	template<typename RealTy>
-	u16 duty_cycle_to_ticks (RealTy duty_cycle) const {
+	constexpr u16 duty_cycle_to_ticks (RealTy duty_cycle) const {
 		const auto raw_ticks = duty_cycle * tick_max;
 		const u16 clamped_ticks = clamp<u16>(raw_ticks, 0, tick_max);
 		return (!is_active_low)? (clamped_ticks) : (tick_max - clamped_ticks);
@@ -32,7 +32,7 @@ struct PWMData
 
 	/** \param pulse_len should not exceed period */
 	template<typename T>
-	u16 pw_us_to_ticks (T pw_us) const {
+	constexpr u16 pw_us_to_ticks (T pw_us) const {
 		const auto raw_ticks = (tick_max * period_us) / pw_us;
 		const u16 clamped_ticks = clamp<u16>(raw_ticks, 0, tick_max);
 		return (!is_active_low)? (clamped_ticks) : (tick_max - clamped_ticks);
@@ -50,12 +50,12 @@ struct PWMData
 
 struct Pin
 {
-	byte pin;
+	u8 pin;
 	constexpr Pin (u8 _pin) : pin(_pin) {};
-	constexpr Pin (_AvoUno::PinID _id) : pin(byte(_id)) {};
+	constexpr Pin (PinID _id) : pin(u8(_id)) {};
 
-	template<typename T>
-	constexpr Pin& operator = (const T& val) { pin = byte(val); return *this; }
+	constexpr Pin& operator = (u8 val) { pin = val; return *this; }
+	constexpr Pin& operator = (PinID val) { pin = u8(val); return *this; }
 
 	inline void set_pinmode_in  ()        const { pinMode(pin, INPUT);  }
 	inline void set_pinmode_out ()        const { pinMode(pin, OUTPUT); }
@@ -66,9 +66,8 @@ struct Pin
 		digitalWrite(pin, val);
 	}
 	inline void write_digital_fast_unsafe (u8 val) const {
-		_AvoUno::DOUT_MASKS
-		.get(_AvoUno::PinID(pin))
-		.set_bit(pin, val);
+		const PinID id = PinID(pin);
+		DOutMasks::get(id).set_bit(id, val);
 	}
 	inline void write_analog (u16 val) const {
 		analogWrite(pin, val);
@@ -81,9 +80,8 @@ struct Pin
 		return digitalRead(pin);
 	}
 	inline bool read_digital_fast () const {
-		return _AvoUno::DIN_MASKS
-		.get(_AvoUno::PinID(pin))
-		.get_bit(pin);
+		const PinID id = PinID(pin);
+		return DInMasks::get(id).get_bit(id);
 	}
 	inline int  read_analog () const {
 		return analogRead(pin);
@@ -120,7 +118,7 @@ struct DOut
 		pin.write_digital_fast_unsafe(val);
 	}
 
-	inline void pulse_safe_us (u8 val, u16 pulse_us, u16 pull_us = 2)
+	inline void pulse_safe_us (u8 val, u16 pulse_us, u16 pull_us = 2) const
 	{
 		constexpr u16 write_call_compensation_us = 2;
 		const u16 raw_delay_us = pulse_us - write_call_compensation_us;
@@ -167,18 +165,21 @@ struct AOut
 	inline void write_ticks (u16 ticks) const { pin.write_analog(ticks); }
 	inline void write_analog (u16 ticks) const { write_ticks(ticks); }
 
-	inline void pulse_safe_us (u8 val, u16 us) const
+	inline void pulse_safe_us (u8 val, u16 pulse_us, u16 pull_us = 2) const
 	{
-		constexpr u16 pull_for_us = 2;
 		constexpr u16 write_call_compensation_us = 2;
+		const u16 raw_delay_us = pulse_us - write_call_compensation_us;
 
-		// make sure the initial state is actually inverted
-		write_digital(!val);
-		delayMicroseconds(pull_for_us);
+		// handle uint underflow
+		const u16 delay_us = (raw_delay_us < pulse_us)? raw_delay_us : 0;
 
-		write_digital(val);
-		delayMicroseconds(us - write_call_compensation_us);
-		write_digital(!val);
+		// make sure the initial state is actually the inverse of val
+		write(!val);
+		delayMicroseconds(pull_us);
+
+		write(val);
+		delayMicroseconds(delay_us);
+		write(!val);
 	}
 
 	/** \param duty_cycle from 0 to 1 */

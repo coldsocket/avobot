@@ -18,14 +18,14 @@ struct MotorPower
 	: power_reduction(_power_reduction), power_factor(_power_factor), power_raw(_power_raw)
 	{}
 
-	float get_final_power () const {
+	constexpr float get_final_power () const {
 		return power_raw * (1-power_reduction) * power_factor;
 	}
-	float get_final_power_abs () const {
+	constexpr float get_final_power_abs () const {
 		return abs(power_raw * (1-power_reduction) * power_factor);
 	}
 	/** \return 0: forwards, 1: backwards */
-	bool get_final_dir () const {
+	constexpr bool get_final_dir () const {
 		return signbit(get_final_dir());
 	}
 };
@@ -71,11 +71,11 @@ struct Servo
 	  , pw_max_us(type.pw_max_us), pw_span_us(type.pw_span_us), is_reversed(_is_reversed)
 	{}
 
-	inline void set_pinmode () {
+	inline void set_pinmode () const {
 		out.set_pinmode();
 	}
 
-	inline float get_duty_cycle ()
+	constexpr float get_duty_cycle () const
 	{
 		const auto mul = angle_factor * ( (!is_reversed)? 1 : -1 );
 		const auto factored_angle = angle * mul;

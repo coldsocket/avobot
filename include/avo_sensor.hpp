@@ -19,12 +19,12 @@ struct UltraSonic
 	: trig(_trig), echo(_echo)
 	{}
 
-	void set_pinmode () {
+	inline void set_pinmode () const {
 		trig.set_pinmode();
 		echo.set_pinmode();
 	}
 
-	float get_dist ()
+	inline float get_dist ()
 	{
 		trig.write(LOW);
 		delayMicroseconds(2);

@@ -11,14 +11,14 @@ struct StaticArr
 	u16 count = 0;
 
 	/** \return -1 = not found */
-	size_t find_first_value (const T& val, size_t start = 0) {
+	constexpr size_t find_first_value (const T& val, size_t start = 0) const {
 		for (size_t i = start; i < count; i++)
 			if (arr[i] == val) return i;
 		return -1;
 	}
 
 	/** \return true = index out of bounds */
-	bool shift_fwd_delete_add (size_t idx, const T& val)
+	constexpr bool shift_fwd_delete_add (size_t idx, const T& val)
 	{
 		if (idx >= count) return true;
 
@@ -31,12 +31,12 @@ struct StaticArr
 	}
 
 	/** \return true = index out of bounds */
-	bool shift_fwd_delete (size_t idx) {
+	constexpr bool shift_fwd_delete (size_t idx) {
 		return shift_fwd_delete_add(idx, T());
 	}
 
 	/** \return true = index out of bounds or max capacity */
-	bool shift_bwd_add (size_t idx, const T& val)
+	constexpr bool shift_bwd_add (size_t idx, const T& val)
 	{
 		if (idx >= count) return true;
 
@@ -53,32 +53,32 @@ struct StaticArr
 	}
 
 	/** \return true = index out of bounds or max capacity */
-	bool shift_bwd (size_t idx) {
+	constexpr bool shift_bwd (size_t idx) {
 		return shift_bwd_add(idx, T());
 	}
 
 	/** \return true = max capacity */
-	bool push_back (const T& point) {
+	constexpr bool push_back (const T& point) {
 		if (count == capacity) return true;
 		arr[count++] = point;
 		return false;
 	}
 
 	/** \return true = max capacity */
-	bool push_front (const T& point) {
+	constexpr bool push_front (const T& point) {
 		if (count == capacity) return true;
 		shift_bwd_add(0, point);
 		return false;
 	}
 
 	/** \return returns default if not found */
-	T pop_back () {
+	constexpr T pop_back () {
 		if (count == 0) return T();
 		return arr[--count];
 	}
 
 	/** \return returns default if not found */
-	T pop_front () {
+	constexpr T pop_front () {
 		if (count == 0) return T();
 		T val = arr[0];
 		shift_fwd_delete(0);
@@ -86,13 +86,13 @@ struct StaticArr
 	}
 
 	/** \return -1 = not found */
-	size_t pop (const T& point) {
+	constexpr size_t pop (const T& point) {
 		size_t idx = find_first_value(point);
 		shift_fwd_delete(idx);
 		return idx;
 	}
 
-	T& operator[] (size_t i) {
+	constexpr T& operator[] (size_t i) {
 		return arr[i];
 	}
 };

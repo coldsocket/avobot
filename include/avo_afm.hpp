@@ -20,7 +20,7 @@ struct AvoMotors
 	DOut latch;
 	DOut disable;
 
-	void init ()
+	inline void init ()
 	{
 		fl      .set_pinmode();
 		fr      .set_pinmode();
@@ -35,7 +35,7 @@ struct AvoMotors
 		disable.write(LOW);
 	}
 
-	void write_motor_powers ()
+	inline void write_motor_powers () const
 	{
 		fl.write_duty_cycle(fl_power.get_final_power_abs());
 		fr.write_duty_cycle(fr_power.get_final_power_abs());
@@ -44,9 +44,9 @@ struct AvoMotors
 	}
 
 	// !!! UNORDERED FOR NOW !!!
-	void write_motor_ins ()
+	inline void write_motor_ins () const
 	{
-		auto write_dir = [this](MotorPower& pow, bool invert) {
+		auto write_dir = [this](const MotorPower& pow, bool invert) {
 			const auto dir = pow.get_final_dir() xor invert;
 			data.write_digital_fast_unsafe(dir);
 			clock.pulse_safe_us(HIGH, 0, 0);
@@ -62,7 +62,7 @@ struct AvoMotors
 		latch.pulse_safe_us(HIGH, 0, 0);
 	}
 
-	void update ()
+	inline void update ()
 	{
 		write_motor_powers();
 		write_motor_ins();

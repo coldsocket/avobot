@@ -9,7 +9,7 @@ struct AvoSelf
 	Vec2f pos = {0, 0};
 	float heading = 0;
 
-	void init () { auto& self = *this;
+	inline void init () { auto& self = *this;
 		self.__repr__();
 	}
 
