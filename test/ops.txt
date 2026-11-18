@@ -1,0 +1,15 @@
+-O3
+RAM:   [=====     ]  49.0% (used 1004 bytes from 2048 bytes)
+Flash: [====      ]  37.0% (used 11926 bytes from 32256 bytes)
+
+-O2
+RAM:   [=====     ]  49.0% (used 1004 bytes from 2048 bytes)
+Flash: [===       ]  29.6% (used 9542 bytes from 32256 bytes)
+
+-O1
+RAM:   [=====     ]  48.1% (used 986 bytes from 2048 bytes)
+Flash: [===       ]  33.7% (used 10874 bytes from 32256 bytes)
+
+-Os
+RAM:   [=====     ]  49.0% (used 1004 bytes from 2048 bytes)
+Flash: [===       ]  25.4% (used 8180 bytes from 32256 bytes)

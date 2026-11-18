@@ -6,7 +6,7 @@
 struct PWMData
 {
 	float frequency_Hz = 490.20f;
-	u32 period_us = 1000000.0f / frequency_Hz;
+	u32 period_us = 1'000'000.0f / frequency_Hz;
 	u16 tick_max = 255;
 	const bool is_active_low = false;
 
@@ -17,10 +17,24 @@ struct PWMData
 		bool _is_active_low = false
 	)
 	: frequency_Hz(_frequency_Hz)
-	, period_us(1000000.0f / frequency_Hz)
+	, period_us(1'000'000.0f / frequency_Hz)
 	, tick_max(_tick_max)
 	, is_active_low(_is_active_low)
 	{}
+
+
+	constexpr PWMData& set_frequency (float freq_Hz) {
+		frequency_Hz = freq_Hz;
+		period_us = 1'000'000.0f / frequency_Hz;
+		return *this;
+	}
+
+	constexpr PWMData& set_period (u32 _period_us) {
+		period_us = _period_us;
+		frequency_Hz = 1'000'000.0f / _period_us;
+		return *this;
+	}
+
 
 	/** \param duty_cycle from 0 to 1 */
 	template<typename RealTy>
@@ -30,7 +44,7 @@ struct PWMData
 		return (!is_active_low)? (clamped_ticks) : (tick_max - clamped_ticks);
 	}
 
-	/** \param pulse_len should not exceed period */
+	/** \param pw_us should not exceed period_us */
 	template<typename T>
 	constexpr u16 pw_us_to_ticks (T pw_us) const {
 		const auto raw_ticks = (tick_max * period_us) / pw_us;
@@ -38,7 +52,7 @@ struct PWMData
 		return (!is_active_low)? (clamped_ticks) : (tick_max - clamped_ticks);
 	}
 
-	/** \param duty_cycle from 0 to tick_max */
+	/** \param ticks from 0 to tick_max */
 	template<typename T>
 	constexpr float ticks_to_duty_cycle (T ticks) const {
 		const float duty_cycle = float(ticks) / tick_max;
@@ -57,9 +71,9 @@ struct Pin
 	constexpr Pin& operator = (u8 val) { pin = val; return *this; }
 	constexpr Pin& operator = (PinID val) { pin = u8(val); return *this; }
 
-	inline void set_pinmode_in  ()        const { pinMode(pin, INPUT);  }
-	inline void set_pinmode_out ()        const { pinMode(pin, OUTPUT); }
-	inline void set_pinmode     (int val) const { pinMode(pin, val);    }
+	inline void set_pinmode     (u8 mode) const { pinMode(pin, mode);  }
+	inline void set_pinmode_in  ()        const { set_pinmode(INPUT);  }
+	inline void set_pinmode_out ()        const { set_pinmode(OUTPUT); }
 
 
 	inline void write_digital (u8 val) const {
@@ -87,8 +101,8 @@ struct Pin
 		return analogRead(pin);
 	}
 
-	inline u32 pulse_in (u8 state, u32 timeout) const {
-		return pulseIn(pin, state, timeout);
+	inline u32 pulse_in_us (u8 state, u32 timeout_us) const {
+		return pulseIn(pin, state, timeout_us);
 	}
 };
 
@@ -102,8 +116,8 @@ struct DIn
 	inline int read () const { return read_digital(); }
 	inline bool read_digital_fast () const { return pin.read_digital_fast(); }
 
-	inline u32 pulse_in (u8 state, u32 timeout) const {
-		return pin.pulse_in(state, timeout);
+	inline u32 pulse_in_us (u8 state, u32 timeout_us) const {
+		return pin.pulse_in_us(state, timeout_us);
 	}
 };
 
@@ -145,8 +159,8 @@ struct AIn
 	inline int read_analog () const { return pin.read_analog(); }
 	inline int read () const { return read_analog(); }
 
-	inline u32 pulse_in (u8 state, u32 timeout) const {
-		return pin.pulse_in(state, timeout);
+	inline u32 pulse_in_us (u8 state, u32 timeout_us) const {
+		return pin.pulse_in_us(state, timeout_us);
 	}
 };
 
@@ -187,5 +201,10 @@ struct AOut
 	inline void write_duty_cycle (RealTy duty_cycle) const {
 		const auto ticks = pwm->duty_cycle_to_ticks(duty_cycle);
 		write_ticks(ticks);
+	}
+
+	/** \param pw_us should not exceed pwm.period_us */
+	inline void write_pw_us (u16 pw_us) const {
+		write_ticks(pwm->pw_us_to_ticks(pw_us));
 	}
 };

@@ -14,7 +14,9 @@ constexpr T signof (T val) { return (val > 0)? 1 : ((val < 0)? -1 : 0); }
 
 
 template<typename T>
-constexpr T clamp (T val, T vmin, T vmax) { return avo_min(avo_max(val, vmin), vmax); }
+constexpr T clamp (T val, T vmin, T vmax) {
+	return avo_min(avo_max(val, vmin), vmax);
+}
 
 template<typename T, typename FT>
 constexpr T lerp (T start, T target, FT factor) {

@@ -2,7 +2,7 @@
 
 
 AvoBot avobot;
-constexpr int SERIAL_BAUD = 9600;
+constexpr u32 SERIAL_BAUD = 115'200;
 
 
 void setup()

@@ -36,8 +36,8 @@ struct ServoType
 	float angle_max = 180;
 	float turnspeed = 0.8;
 
-	u16 pw_min_us = 1000;
-	u16 pw_max_us = 2000;
+	u16 pw_min_us = 1'000;
+	u16 pw_max_us = 2'000;
 	u16 pw_span_us = pw_max_us - pw_min_us;
 
 	constexpr ServoType () = default;
@@ -56,8 +56,8 @@ struct Servo
 	float angle_extremum = angle_span/2;
 	float turnspeed = 0.8f;
 
-	u16 pw_min_us = 1000;
-	u16 pw_max_us = 2000;
+	u16 pw_min_us = 1'000;
+	u16 pw_max_us = 2'000;
 	u16 pw_span_us = pw_max_us - pw_min_us;
 
 	bool is_reversed = false;
@@ -75,18 +75,19 @@ struct Servo
 		out.set_pinmode();
 	}
 
-	constexpr float get_duty_cycle () const
+	constexpr u16 get_pw_us () const
 	{
 		const auto mul = angle_factor * ( (!is_reversed)? 1 : -1 );
 		const auto factored_angle = angle * mul;
-		const auto angle_cycle = clamp<float>(
-			factored_angle + angle_extremum, 0, angle_span
+		const u16 pw_us = map_value<float>(
+			factored_angle, -angle_extremum, angle_extremum,
+			pw_min_us, pw_max_us
 		);
-		return angle_cycle / angle_span;
+		return clamp<u16>(pw_us, pw_min_us, pw_max_us);
 	}
 
 	inline void write_angle (float new_angle) {
 		angle = new_angle;
-		out.write_duty_cycle(get_duty_cycle());
+		out.write_pw_us(get_pw_us());
 	}
 };
