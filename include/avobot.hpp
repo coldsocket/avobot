@@ -1,19 +1,19 @@
 #pragma once
 
-#include "avo-afm.hpp"
-#include "avo-radar.hpp"
-#include "avo-self.hpp"
+#include "avo_afm.hpp"
+#include "avo_sonar.hpp"
+#include "avo_self.hpp"
 
 
 class AvoBot
 {
 	PWMData avopwm = {};
 
-	AvoAFMotors afmotors = {
-		.fl_data = {1.00f},
-		.fr_data = {1.00f},
-		.bl_data = {1.00f},
-		.br_data = {1.00f},
+	AvoMotors afmotors = {
+		.fl_power = {1.00f},
+		.fr_power = {1.00f},
+		.bl_power = {1.00f},
+		.br_power = {1.00f},
 
 		.fl = AOut{&avopwm, 11},
 		.fr = AOut{&avopwm,  3},
@@ -26,7 +26,7 @@ class AvoBot
 		.enable = DOut{ 7}
 	};
 
-	AvoRadar radar = {
+	AvoSonar sonar = {
 		.view_pivot = Servo{servo_SG90, AOut{&avopwm, 10}},
 		.sonic_sensor = UltraSonic{DOut{A0}, DIn{A1}}
 	};
@@ -37,16 +37,12 @@ class AvoBot
 public:
 	void init () {
 		afmotors.init();
-		radar.init();
+		sonar.init();
 		self.init();
 	}
 
 	void update () {
-		radar.update(self);
+		sonar.update(self);
 		afmotors.update();
 	}
 };
-
-// min dist = 15
-// max speed = 255
-// use serial = Serial

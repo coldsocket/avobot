@@ -1,19 +1,39 @@
 #pragma once
 
-#include "avo-uno.hpp"
+#include "hal_uno.hpp"
 
 
 struct PWMData
 {
-	float frequency_Hz = 490.0f;
+	float frequency_Hz = 490.20f;
 	u32 period_us = 1000000.0f / frequency_Hz;
 	u16 tick_max = 255;
-	bool is_active_low = false;
+	const bool is_active_low = false;
+
+	constexpr PWMData () = default;
+	constexpr PWMData (
+		float _frequency_Hz,
+		u16 _tick_max,
+		bool _is_active_low = false
+	)
+	: frequency_Hz(_frequency_Hz)
+	, period_us(1000000.0f / frequency_Hz)
+	, tick_max(_tick_max)
+	, is_active_low(_is_active_low)
+	{}
 
 	/** \param duty_cycle from 0 to 1 */
 	template<typename RealTy>
 	u16 duty_cycle_to_ticks (RealTy duty_cycle) const {
 		const auto raw_ticks = duty_cycle * tick_max;
+		const u16 clamped_ticks = clamp<u16>(raw_ticks, 0, tick_max);
+		return (!is_active_low)? (clamped_ticks) : (tick_max - clamped_ticks);
+	}
+
+	/** \param pulse_len should not exceed period */
+	template<typename T>
+	u16 pw_us_to_ticks (T pw_us) const {
+		const auto raw_ticks = (tick_max * period_us) / pw_us;
 		const u16 clamped_ticks = clamp<u16>(raw_ticks, 0, tick_max);
 		return (!is_active_low)? (clamped_ticks) : (tick_max - clamped_ticks);
 	}

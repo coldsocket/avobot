@@ -11,8 +11,8 @@ struct StaticArr
 	u16 count = 0;
 
 	/** \return -1 = not found */
-	size_t find_first_value (const T& val) {
-		for (size_t i = 0; i < count; i++)
+	size_t find_first_value (const T& val, size_t start = 0) {
+		for (size_t i = start; i < count; i++)
 			if (arr[i] == val) return i;
 		return -1;
 	}

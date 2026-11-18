@@ -1,7 +1,7 @@
 #pragma once
 
-#include "avo-gpio.hpp"
-#include "avo-math.hpp"
+#include "avo_gpio.hpp"
+#include "avo_math.hpp"
 
 // analisis kelangkaan sd air di pulau jawa
 struct UltraSonic

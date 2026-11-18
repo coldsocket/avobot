@@ -10,7 +10,10 @@ struct Vec2T
 	T y = 0;
 
 	constexpr Vec2T () = default;
-	constexpr Vec2T (T _x, T _y = 0) : x(_x), y(_y) {}
+	constexpr Vec2T (T _v) : x(_v), y(_v) {}
+	constexpr Vec2T (T _x, T _y) : x(_x), y(_y) {}
+
+	bool operator == (const Vec2T& other) { return (x == other.x) && (y == other.y); }
 
 	Vec2T& operator += (const Vec2T& other) { x += other.x, y += other.y; return *this; }
 	Vec2T& operator -= (const Vec2T& other) { x -= other.x, y -= other.y; return *this; }
@@ -36,8 +39,8 @@ struct Vec2T
 
 	T dot  (const Vec2T& other) const { return x * other.x + y * other.y; }
 	T dotP (const Vec2T& other) const { return x * other.y + y * other.x; }
-	T rel_cos (const Vec2T& other) const { return dot (other) / (length()*other.length()); }
-	T rel_sin (const Vec2T& other) const { return dotP(other) / (length()*other.length()); }
+	T rel_cos (const Vec2T& other) const { return dot (other) / (length() * other.length()); }
+	T rel_sin (const Vec2T& other) const { return dotP(other) / (length() * other.length()); }
 	T angle_acos (const Vec2T& other) const { return acos(rel_cos(other)); }
 	T angle_asin (const Vec2T& other) const { return asin(rel_sin(other)); }
 
@@ -48,10 +51,10 @@ struct Vec2T
 
 	float get_heading () const { return atan2(y, x); }
 
-	static Vec2T from_angle (T angle, T magnitude) {
+	static constexpr Vec2T from_angle (T angle, T magnitude) {
 		return { magnitude * cos(angle), magnitude * sin(angle) };
 	}
-	static Vec2T from_angle (T angle) {
+	static constexpr Vec2T from_angle (T angle) {
 		return from_angle(angle, 1);
 	}
 };

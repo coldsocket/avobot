@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
-#include "avo-math.hpp"
+#include "avo_math.hpp"
 
 
 struct AvoSelf

@@ -1,12 +1,12 @@
 #pragma once
 
-#include "avo-sensor.hpp"
-#include "avo-peripherals.hpp"
 #include "static_arr.hpp"
-#include "avo-self.hpp"
+#include "avo_sensor.hpp"
+#include "avo_peripherals.hpp"
+#include "avo_self.hpp"
 
 
-struct AvoRadar
+struct AvoSonar
 {
 	Servo      view_pivot;
 	UltraSonic sonic_sensor;
@@ -33,7 +33,7 @@ struct AvoRadar
 		else
 			push_point(echoing_point);
 
-		print_repr();
+		print_map();
 	}
 
 
@@ -51,9 +51,21 @@ struct AvoRadar
 			point_cloud[i] -= pos;
 	}
 
-	void print_repr ()
+	void print_map ()
 	{
-		// 13y by 31x
+		constexpr size_t width_chr = 31;
+		constexpr size_t height_chr = 13;
+
+		// from 0 to width - 1
+		constexpr size_t fac_x = width_chr - 1;
+		constexpr size_t fac_y = height_chr - 1;
+
+		// includes the ending newlines
+		constexpr size_t width_incl = width_chr + 1;
+
+		constexpr float width_m = 1.00f;
+
+		// 13(y) by 31(x)
 		// yes, this is inefficient and wastes precious RAM
 		char print_buffer[] = {
 			' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\n', // 1
@@ -73,22 +85,25 @@ struct AvoRadar
 
 		for (size_t i = 0; i < point_cloud.count; i++)
 		{
-			Vec2f pos = point_cloud[i];
-			pos = pos / 1.0f + Vec2f(0.5, 0.5);
-			pos = { clamp<float>(pos.x, 0, 1), clamp<float>(pos.y, 0, 1) };
+			// add by 0.5 to center it
+			const Vec2f point_pos = Vec2f(0.5, 0.5) + point_cloud[i] / width_m;
 
-			Vec2T<size_t> char_pos = {
-				(size_t)roundf(30 * pos.x),
-				(size_t)roundf(12 * pos.y)
+			const Vec2T<size_t> char_pos = {
+				clamp<size_t>(roundf(fac_x * point_pos.x), 0, fac_x),
+				clamp<size_t>(roundf(fac_y * point_pos.y), 0, fac_y)
 			};
-			size_t char_idx = char_pos.y * 32 + char_pos.x;
+
+			// invert y so that +y points up
+			const size_t char_idx = (fac_y - char_pos.y) * width_incl + char_pos.x;
 			print_buffer[char_idx] = '#';
 		}
 
-		// Self
-		print_buffer[6*32 + 16] = '@';
+		// Self : Self-Overlapped
+		print_buffer[6*32 + 15] =
+			(' ' == print_buffer[6*32 + 15])?
+			'S' : '$';
 
-		Serial.print("-=== POINT CLOUD ASCII REPR ===-\n");
+		Serial.print("-====== POINT CLOUD MAP ======-\n");
 		Serial.print("N = ");
 		Serial.print(point_cloud.count);
 		Serial.print(" | Newest: (");
@@ -96,8 +111,8 @@ struct AvoRadar
 		Serial.print(", ");
 		Serial.print(point_cloud[point_cloud.count-1].y);
 		Serial.print(")\n");
-		Serial.print("============ 100 cm ============\n");
+		Serial.print("============ 100cm ============\n");
 		Serial.print(print_buffer);
-		Serial.print("-========== END REPR ==========-\n");
+		Serial.print("-============ END ============-\n");
 	}
 };

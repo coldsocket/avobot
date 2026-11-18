@@ -1,14 +1,14 @@
 #pragma once
 
-#include "avo-motor.hpp"
+#include "avo_motor.hpp"
 
 
-struct AvoAFMotors
+struct AvoMotors
 {
-	MotorPowerData fl_data;
-	MotorPowerData fr_data;
-	MotorPowerData bl_data;
-	MotorPowerData br_data;
+	MotorPower fl_power;
+	MotorPower fr_power;
+	MotorPower bl_power;
+	MotorPower br_power;
 
 	AOut fl;
 	AOut fr;

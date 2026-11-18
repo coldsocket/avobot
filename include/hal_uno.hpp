@@ -1,12 +1,12 @@
 #pragma once
 
 #include <Arduino.h>
-#include "avo-math.hpp"
+#include "avo_math.hpp"
 
 
-#define INT_ROUTINE_PORT_B ISR(PCINT0_vect)
-#define INT_ROUTINE_PORT_C ISR(PCINT1_vect)
-#define INT_ROUTINE_PORT_D ISR(PCINT2_vect)
+#define PCINT_ROUTINE_PORT_B ISR(PCINT0_vect)
+#define PCINT_ROUTINE_PORT_C ISR(PCINT1_vect)
+#define PCINT_ROUTINE_PORT_D ISR(PCINT2_vect)
 
 
 struct _AvoUno
@@ -61,7 +61,7 @@ struct _AvoUno
 		A3  = PC3, A4  = PC4, A5  = PC5
 	};
 
-	enum class PortCIntBit: byte
+	enum class PortPCIntBit: byte
 	{
 		// D8-D13
 		PORT_B = PCIE0,
@@ -71,7 +71,7 @@ struct _AvoUno
 		PORT_D = PCIE2,
 	};
 
-	enum class PinCIntBit: byte
+	enum class PinPCIntBit: byte
 	{
 		/* PORT D */
 		D0  = PCINT16, D1  = PCINT17, D2  = PCINT18,
@@ -92,11 +92,10 @@ struct _AvoUno
 	};
 
 
-	// 'X' denotes volatility
-	struct XMask8Ref
+	struct RegRef_Mask8
 	{
 		volatile u8& mask;
-		XMask8Ref (volatile u8& _mask) : mask(_mask) {}
+		RegRef_Mask8 (volatile u8& _mask) : mask(_mask) {}
 
 		/** \param place 0 inclusive */
 		bool get_bit (u8 place) {
@@ -105,7 +104,7 @@ struct _AvoUno
 		}
 
 		/** \param place 0 inclusive */
-		XMask8Ref& set_bit (u8 place, bool _value) {
+		RegRef_Mask8& set_bit (u8 place, bool _value) {
 			auto remove = (0b1 << place);
 			auto value = (_value << place);
 			mask = (mask & !remove) | (value);
@@ -113,12 +112,12 @@ struct _AvoUno
 		}
 	};
 
-	struct _DInMasks {
-		XMask8Ref PORT_B = PINB;
-		XMask8Ref PORT_C = PINC;
-		XMask8Ref PORT_D = PIND;
+	struct _DataDirMasks {
+		RegRef_Mask8 PORT_B = DDRB;
+		RegRef_Mask8 PORT_C = DDRC;
+		RegRef_Mask8 PORT_D = DDRD;
 
-		inline XMask8Ref get (PortID port_id)
+		inline RegRef_Mask8 get (PortID port_id)
 		{
 			switch (port_id) {
 				case PortID::PORT_B: return PORT_B;
@@ -126,16 +125,33 @@ struct _AvoUno
 				case PortID::PORT_D: return PORT_D;
 			};
 		}
-		inline XMask8Ref get (PinID pin_id) { return get(pinID_to_portID(pin_id)); }
+		inline RegRef_Mask8 get (PinID pin_id) { return get(pinID_to_portID(pin_id)); }
+	};
+	static _DataDirMasks DATA_DIR_MASKS;
+
+	struct _DInMasks {
+		RegRef_Mask8 PORT_B = PINB;
+		RegRef_Mask8 PORT_C = PINC;
+		RegRef_Mask8 PORT_D = PIND;
+
+		inline RegRef_Mask8 get (PortID port_id)
+		{
+			switch (port_id) {
+				case PortID::PORT_B: return PORT_B;
+				case PortID::PORT_C: return PORT_C;
+				case PortID::PORT_D: return PORT_D;
+			};
+		}
+		inline RegRef_Mask8 get (PinID pin_id) { return get(pinID_to_portID(pin_id)); }
 	};
 	static _DInMasks DIN_MASKS;
 
 	struct _DOutMasks {
-		XMask8Ref PORT_B = PORTB;
-		XMask8Ref PORT_C = PORTC;
-		XMask8Ref PORT_D = PORTD;
+		RegRef_Mask8 PORT_B = PORTB;
+		RegRef_Mask8 PORT_C = PORTC;
+		RegRef_Mask8 PORT_D = PORTD;
 
-		inline XMask8Ref get (PortID port_id)
+		inline RegRef_Mask8 get (PortID port_id)
 		{
 			switch (port_id) {
 				case PortID::PORT_B: return PORT_B;
@@ -143,17 +159,17 @@ struct _AvoUno
 				case PortID::PORT_D: return PORT_D;
 			};
 		}
-		inline XMask8Ref get (PinID pin_id) { return get(pinID_to_portID(pin_id)); }
+		inline RegRef_Mask8 get (PinID pin_id) { return get(pinID_to_portID(pin_id)); }
 	};
 	static _DOutMasks DOUT_MASKS;
 
-	struct _CIntMasks {
-		XMask8Ref ENPORT = PCICR;
-		XMask8Ref PORT_B = PCMSK0;
-		XMask8Ref PORT_C = PCMSK1;
-		XMask8Ref PORT_D = PCMSK2;
+	struct _PCIntMasks {
+		RegRef_Mask8 ENPORT = PCICR;
+		RegRef_Mask8 PORT_B = PCMSK0;
+		RegRef_Mask8 PORT_C = PCMSK1;
+		RegRef_Mask8 PORT_D = PCMSK2;
 
-		inline XMask8Ref get (PortID port_id)
+		inline RegRef_Mask8 get (PortID port_id)
 		{
 			switch (port_id) {
 				case PortID::PORT_B: return PORT_B;
@@ -161,9 +177,9 @@ struct _AvoUno
 				case PortID::PORT_D: return PORT_D;
 			};
 		}
-		inline XMask8Ref get (PinID pin_id) { return get(pinID_to_portID(pin_id)); }
+		inline RegRef_Mask8 get (PinID pin_id) { return get(pinID_to_portID(pin_id)); }
 	};
-	static _CIntMasks CINT_MASKS;
+	static _PCIntMasks PCINT_MASKS;
 
 
 	static inline PortID pinID_to_portID (PinID pin_id)
@@ -202,48 +218,48 @@ struct _AvoUno
 		}
 	}
 
-	static inline PinCIntBit pinID_to_cintbit (PinID pin_id)
+	static inline PinPCIntBit pinID_to_pcintbit (PinID pin_id)
 	{
 		switch (pin_id) {
-			case PinID::D0  : return PinCIntBit::D0;
-			case PinID::D1  : return PinCIntBit::D1;
-			case PinID::D2  : return PinCIntBit::D2;
-			case PinID::D3  : return PinCIntBit::D3;
-			case PinID::D4  : return PinCIntBit::D4;
-			case PinID::D5  : return PinCIntBit::D5;
-			case PinID::D6  : return PinCIntBit::D6;
-			case PinID::D7  : return PinCIntBit::D7;
-			case PinID::D8  : return PinCIntBit::D8;
-			case PinID::D9  : return PinCIntBit::D9;
-			case PinID::D10 : return PinCIntBit::D10;
-			case PinID::D11 : return PinCIntBit::D11;
-			case PinID::D12 : return PinCIntBit::D12;
-			case PinID::D13 : return PinCIntBit::D13;
-			case PinID::A0  : return PinCIntBit::A0;
-			case PinID::A1  : return PinCIntBit::A1;
-			case PinID::A2  : return PinCIntBit::A2;
-			case PinID::A3  : return PinCIntBit::A3;
-			case PinID::A4  : return PinCIntBit::A4;
-			case PinID::A5  : return PinCIntBit::A5;
+			case PinID::D0  : return PinPCIntBit::D0;
+			case PinID::D1  : return PinPCIntBit::D1;
+			case PinID::D2  : return PinPCIntBit::D2;
+			case PinID::D3  : return PinPCIntBit::D3;
+			case PinID::D4  : return PinPCIntBit::D4;
+			case PinID::D5  : return PinPCIntBit::D5;
+			case PinID::D6  : return PinPCIntBit::D6;
+			case PinID::D7  : return PinPCIntBit::D7;
+			case PinID::D8  : return PinPCIntBit::D8;
+			case PinID::D9  : return PinPCIntBit::D9;
+			case PinID::D10 : return PinPCIntBit::D10;
+			case PinID::D11 : return PinPCIntBit::D11;
+			case PinID::D12 : return PinPCIntBit::D12;
+			case PinID::D13 : return PinPCIntBit::D13;
+			case PinID::A0  : return PinPCIntBit::A0;
+			case PinID::A1  : return PinPCIntBit::A1;
+			case PinID::A2  : return PinPCIntBit::A2;
+			case PinID::A3  : return PinPCIntBit::A3;
+			case PinID::A4  : return PinPCIntBit::A4;
+			case PinID::A5  : return PinPCIntBit::A5;
 		}
 	}
 
-	static inline PortCIntBit portID_to_cintbit (PortID port_id) {
-		return (PortCIntBit)port_id;
+	static inline PortPCIntBit portID_to_pcintbit (PortID port_id) {
+		return (PortPCIntBit)port_id;
 	}
 
 
 	static void enable_cint_port (PortID port_id) {
-		const auto port_bit = portID_to_cintbit(port_id);
-		CINT_MASKS.ENPORT.set_bit(u8(port_bit), true);
+		const auto port_bit = portID_to_pcintbit(port_id);
+		PCINT_MASKS.ENPORT.set_bit(u8(port_bit), true);
 	}
 
 	static void enable_cint_pin (PinID pin_id) {
 		const auto port_id = pinID_to_portID(pin_id);
-		const auto pin_bit = pinID_to_cintbit(pin_id);
+		const auto pin_bit = pinID_to_pcintbit(pin_id);
 
 		enable_cint_port(port_id);
-		auto pinmask = CINT_MASKS.get(port_id);
+		auto pinmask = PCINT_MASKS.get(port_id);
 		pinmask.set_bit(u8(pin_bit), true);
 	}
 
