@@ -65,8 +65,8 @@ struct Pin
 	inline void write_digital (u8 val) const {
 		digitalWrite(pin, val);
 	}
-	inline void write_digital_fast_no_disable_pwm (u8 val) const {
-		AvoUno.DOUT_MASKS
+	inline void write_digital_fast_unsafe (u8 val) const {
+		_AvoUno::DOUT_MASKS
 		.get(_AvoUno::PinID(pin))
 		.set_bit(pin, val);
 	}
@@ -81,7 +81,7 @@ struct Pin
 		return digitalRead(pin);
 	}
 	inline bool read_digital_fast () const {
-		return AvoUno.DIN_MASKS
+		return _AvoUno::DIN_MASKS
 		.get(_AvoUno::PinID(pin))
 		.get_bit(pin);
 	}
@@ -116,8 +116,25 @@ struct DOut
 	inline void set_pinmode () const { pin.set_pinmode_out(); }
 	inline void write_digital (u8 val) const { pin.write_digital(val); }
 	inline void write (u8 val) const { pin.write_digital(val); }
-	inline void write_digital_fast_no_disable_pwm (u8 val) const {
-		pin.write_digital_fast_no_disable_pwm(val);
+	inline void write_digital_fast_unsafe (u8 val) const {
+		pin.write_digital_fast_unsafe(val);
+	}
+
+	inline void pulse_safe_us (u8 val, u16 pulse_us, u16 pull_us = 2)
+	{
+		constexpr u16 write_call_compensation_us = 2;
+		const u16 raw_delay_us = pulse_us - write_call_compensation_us;
+
+		// handle uint underflow
+		const u16 delay_us = (raw_delay_us < pulse_us)? raw_delay_us : 0;
+
+		// make sure the initial state is actually the inverse of val
+		write(!val);
+		delayMicroseconds(pull_us);
+
+		write(val);
+		delayMicroseconds(delay_us);
+		write(!val);
 	}
 };
 
@@ -141,8 +158,28 @@ struct AOut
 	Pin pin;
 
 	inline void set_pinmode () const { pin.set_pinmode_out(); }
+	inline void write_digital (u8 val) const { pin.write_digital(val); }
+	inline void write (u8 val) const { pin.write_digital(val); }
+	inline void write_digital_fast_unsafe (u8 val) const {
+		pin.write_digital_fast_unsafe(val);
+	}
+
 	inline void write_ticks (u16 ticks) const { pin.write_analog(ticks); }
-	inline void write (u16 ticks) const { write_ticks(ticks); }
+	inline void write_analog (u16 ticks) const { write_ticks(ticks); }
+
+	inline void pulse_safe_us (u8 val, u16 us) const
+	{
+		constexpr u16 pull_for_us = 2;
+		constexpr u16 write_call_compensation_us = 2;
+
+		// make sure the initial state is actually inverted
+		write_digital(!val);
+		delayMicroseconds(pull_for_us);
+
+		write_digital(val);
+		delayMicroseconds(us - write_call_compensation_us);
+		write_digital(!val);
+	}
 
 	/** \param duty_cycle from 0 to 1 */
 	template<typename RealTy>

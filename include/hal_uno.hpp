@@ -124,6 +124,7 @@ struct _AvoUno
 				case PortID::PORT_C: return PORT_C;
 				case PortID::PORT_D: return PORT_D;
 			};
+			return PORT_B;
 		}
 		inline RegRef_Mask8 get (PinID pin_id) { return get(pinID_to_portID(pin_id)); }
 	};
@@ -158,6 +159,7 @@ struct _AvoUno
 				case PortID::PORT_C: return PORT_C;
 				case PortID::PORT_D: return PORT_D;
 			};
+			return PORT_B;
 		}
 		inline RegRef_Mask8 get (PinID pin_id) { return get(pinID_to_portID(pin_id)); }
 	};
@@ -190,6 +192,7 @@ struct _AvoUno
 			return PortID::PORT_B;
 		if (is_within_span(pin_id, PinID::A0, PinID::A5))
 			return PortID::PORT_C;
+		return PortID::PORT_B;
 	}
 
 	static inline PinBit pinID_to_pinbit (PinID pin_id)
@@ -249,23 +252,28 @@ struct _AvoUno
 	}
 
 
-	static void enable_cint_port (PortID port_id) {
+	static void enable_pcint_port (PortID port_id) {
 		const auto port_bit = portID_to_pcintbit(port_id);
 		PCINT_MASKS.ENPORT.set_bit(u8(port_bit), true);
 	}
 
-	static void enable_cint_pin (PinID pin_id) {
+	static void enable_pcint_pin (PinID pin_id) {
 		const auto port_id = pinID_to_portID(pin_id);
 		const auto pin_bit = pinID_to_pcintbit(pin_id);
 
-		enable_cint_port(port_id);
+		enable_pcint_port(port_id);
 		auto pinmask = PCINT_MASKS.get(port_id);
 		pinmask.set_bit(u8(pin_bit), true);
 	}
 
-	static inline void enable_cint (PinID pin_id) {
-		return enable_cint_pin(pin_id);
+	static inline void enable_pcint (PinID pin_id) {
+		return enable_pcint_pin(pin_id);
 	}
 };
+
+_AvoUno::_DataDirMasks _AvoUno::DATA_DIR_MASKS;
+_AvoUno::_DInMasks     _AvoUno::DIN_MASKS;
+_AvoUno::_DOutMasks    _AvoUno::DOUT_MASKS;
+_AvoUno::_PCIntMasks   _AvoUno::PCINT_MASKS;
 
 _AvoUno AvoUno;

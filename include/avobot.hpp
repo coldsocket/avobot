@@ -23,7 +23,7 @@ class AvoBot
 		.clock  = DOut{ 4},
 		.data   = DOut{ 8},
 		.latch  = DOut{12},
-		.enable = DOut{ 7}
+		.disable = DOut{ 7}
 	};
 
 	AvoSonar sonar = {

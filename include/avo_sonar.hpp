@@ -25,11 +25,11 @@ struct AvoSonar
 		float dist = sonic_sensor.get_dist();
 		if (dist == INFINITY) return;
 
-		auto theta = view_pivot.angle;
+		auto theta = view_pivot.angle + self.heading;
 		auto echoing_point = self.pos + Vec2f::from_angle(theta, dist);
 
 		if (point_cloud.count == point_cloud.capacity)
-			point_cloud.shift_front_delete_add(0, echoing_point);
+			point_cloud.shift_fwd_delete_add(0, echoing_point);
 		else
 			push_point(echoing_point);
 

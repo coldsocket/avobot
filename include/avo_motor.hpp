@@ -21,6 +21,13 @@ struct MotorPower
 	float get_final_power () const {
 		return power_raw * (1-power_reduction) * power_factor;
 	}
+	float get_final_power_abs () const {
+		return abs(power_raw * (1-power_reduction) * power_factor);
+	}
+	/** \return 0: forwards, 1: backwards */
+	bool get_final_dir () const {
+		return signbit(get_final_dir());
+	}
 };
 
 

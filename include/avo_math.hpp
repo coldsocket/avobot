@@ -23,7 +23,7 @@ constexpr T lerp (T start, T target, FT factor) {
 
 template<typename T>
 constexpr T map_value (T val, T vmin, T vmax, T out_min, T out_max) {
-  return (val - vmin) * (out_max - out_min) / (vmax - vmin) + out_min;
+	return (val - vmin) * (out_max - out_min) / (vmax - vmin) + out_min;
 }
 
 template<typename T>

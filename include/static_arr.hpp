@@ -18,7 +18,7 @@ struct StaticArr
 	}
 
 	/** \return true = index out of bounds */
-	bool shift_front_delete_add (size_t idx, const T& val)
+	bool shift_fwd_delete_add (size_t idx, const T& val)
 	{
 		if (idx >= count) return true;
 
@@ -31,12 +31,12 @@ struct StaticArr
 	}
 
 	/** \return true = index out of bounds */
-	bool shift_front_delete (size_t idx) {
-		return shift_front_delete_add(idx, T());
+	bool shift_fwd_delete (size_t idx) {
+		return shift_fwd_delete_add(idx, T());
 	}
 
 	/** \return true = index out of bounds or max capacity */
-	bool shift_back_add (size_t idx, const T& val)
+	bool shift_bwd_add (size_t idx, const T& val)
 	{
 		if (idx >= count) return true;
 
@@ -53,8 +53,8 @@ struct StaticArr
 	}
 
 	/** \return true = index out of bounds or max capacity */
-	bool shift_back (size_t idx) {
-		return shift_back_add(idx, T());
+	bool shift_bwd (size_t idx) {
+		return shift_bwd_add(idx, T());
 	}
 
 	/** \return true = max capacity */
@@ -67,27 +67,29 @@ struct StaticArr
 	/** \return true = max capacity */
 	bool push_front (const T& point) {
 		if (count == capacity) return true;
-		shift_back_add(0, point);
+		shift_bwd_add(0, point);
 		return false;
 	}
 
-	/** \return -1 = not found */
-	size_t pop (const T& point) {
-		size_t idx = find_first_value(point);
-		shift_front_delete(idx);
-		return idx;
-	}
-
+	/** \return returns default if not found */
 	T pop_back () {
 		if (count == 0) return T();
 		return arr[--count];
 	}
 
+	/** \return returns default if not found */
 	T pop_front () {
 		if (count == 0) return T();
 		T val = arr[0];
-		shift_front_delete(0);
+		shift_fwd_delete(0);
 		return val;
+	}
+
+	/** \return -1 = not found */
+	size_t pop (const T& point) {
+		size_t idx = find_first_value(point);
+		shift_fwd_delete(idx);
+		return idx;
 	}
 
 	T& operator[] (size_t i) {
