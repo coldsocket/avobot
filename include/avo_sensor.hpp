@@ -3,7 +3,7 @@
 #include "avo_gpio.hpp"
 #include "avo_math.hpp"
 
-// analisis kelangkaan sd air di pulau jawa
+
 struct UltraSonic
 {
 	DOut trig;

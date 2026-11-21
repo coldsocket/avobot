@@ -7,8 +7,8 @@ template<typename T, size_t BufCap>
 struct StaticArr
 {
 	T arr[BufCap];
-	const u16 capacity = BufCap;
-	u16 count = 0;
+	const size_t capacity = BufCap;
+	size_t count = 0;
 
 	/** \return -1 = not found */
 	constexpr size_t find_first_value (const T& val, size_t start = 0) const {

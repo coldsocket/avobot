@@ -3,6 +3,7 @@
 #include <math.h>
 #include <stdint.h>
 #include "vec2.hpp"
+#include "fixed_point.hpp"
 
 
 template<typename T>
@@ -20,15 +21,16 @@ constexpr T clamp (T val, T vmin, T vmax) {
 
 template<typename T, typename FT>
 constexpr T lerp (T start, T target, FT factor) {
-	return start + (target - start) * factor;
+	return start + factor * (target - start);
 }
 
 template<typename T>
 constexpr T map_value (T val, T vmin, T vmax, T out_min, T out_max) {
-	return (val - vmin) * (out_max - out_min) / (vmax - vmin) + out_min;
+	return out_min + (val - vmin) * (out_max - out_min) / (vmax - vmin);
 }
 
+/** \param vmax inclusive */
 template<typename T>
-constexpr bool is_within_span (T val, T min, T max) {
-	return (val >= min) ? (val <= max) : false;
+constexpr bool is_within_range (T val, T vmin, T vmax) {
+	return (val >= vmin) ? (val <= vmax) : false;
 }

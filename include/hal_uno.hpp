@@ -94,11 +94,11 @@ namespace hal
 
 	static constexpr PortID pinID_to_portID (PinID pin_id)
 	{
-		if (is_within_span(pin_id, PinID::D0, PinID::D7))
+		if (is_within_range(pin_id, PinID::D0, PinID::D7))
 			return PortID::PORT_D;
-		if (is_within_span(pin_id, PinID::D8, PinID::D13))
+		if (is_within_range(pin_id, PinID::D8, PinID::D13))
 			return PortID::PORT_B;
-		if (is_within_span(pin_id, PinID::A0, PinID::A5))
+		if (is_within_range(pin_id, PinID::A0, PinID::A5))
 			return PortID::PORT_C;
 		return PortID::PORT_B;
 	}

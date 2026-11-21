@@ -27,10 +27,10 @@ struct AvoMotors
 		bl      .set_pinmode();
 		br      .set_pinmode();
 
-		latch   .set_pinmode();
 		clock   .set_pinmode();
-		disable .set_pinmode();
 		data    .set_pinmode();
+		latch   .set_pinmode();
+		disable .set_pinmode();
 
 		disable.write(LOW);
 	}
