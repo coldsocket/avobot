@@ -11,7 +11,7 @@ struct AvoSonar
 	Servo      view_pivot;
 	UltraSonic sonic_sensor;
 
-	StaticArr<Vec2f, 64> point_cloud; // literally 1/4 of Uno RAM
+	StaticArr<Vec2f, 3> point_cloud; // literally 1/4 of Uno RAM
 
 
 	void init ()
@@ -22,10 +22,13 @@ struct AvoSonar
 
 	void update (AvoSelf& self)
 	{
-		float dist = sonic_sensor.get_dist();
+		auto dist = sonic_sensor.get_dist();
 		if (dist == INFINITY) return;
 
-		auto theta = view_pivot.angle + self.heading;
+		auto t_s = millis() * 0.00'1f;
+		view_pivot.angle = int(360 * t_s / 2.0f) % 360;
+
+		auto theta = AVO_DEG_TO_RAD * (view_pivot.angle + self.heading);
 		auto echoing_point = self.pos + Vec2f::from_angle(theta, dist);
 
 		if (point_cloud.count == point_cloud.capacity)
@@ -33,7 +36,7 @@ struct AvoSonar
 		else
 			push_point(echoing_point);
 
-		print_map();
+		print_map(0.5f);
 	}
 
 
@@ -51,45 +54,29 @@ struct AvoSonar
 			point_cloud[i] -= pos;
 	}
 
-	void print_map ()
+
+	/** \param w_newl the width of print buffer including the line-ending newlines */
+	template<size_t size>
+	inline void populate_map_print_buf (char (&buf)[size], size_t w_newl, size_t h, float width_m)
 	{
-		constexpr size_t width_chr = 31;
-		constexpr size_t height_chr = 13;
-		// includes the ending newline
-		constexpr size_t width_incl = width_chr + 1;
+		if (size != (w_newl * h)) {
+			Serial.println("Buffer size doesn't match width and height");
+			return;
+		}
+		if ((w_newl < 2) or (h < 1)) {
+			Serial.println("Buffer width or height isn't valid");
+			return;
+		}
 
-		// from 0 to width - 1
-		constexpr size_t fac_x = width_chr - 1;
-		constexpr size_t fac_y = height_chr - 1;
+		const size_t fac_x = w_newl - 2;
+		const size_t fac_y = h - 1;
 
-		constexpr float width_m = 1.00f;
 
-		// 13(y) by (31 + 1)(x + '\n')
-		// yes, this is inefficient and wastes precious RAM
-		constexpr size_t buf_size = width_incl * height_chr;
+		memset(buf, ' ', size);
 
-		char print_buffer[buf_size];
-
-		memset(print_buffer, ' ', buf_size);
-		for (uint16_t i = width_incl-1; i < buf_size-1; i += width_incl)
-			print_buffer[i] = '\n';
-		print_buffer[buf_size-1] = '\0';
-
-		// char print_buffer[buf_size] = {
-		// 	' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\n', // 1
-		// 	' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\n', // 2
-		// 	' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\n', // 3
-		// 	' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\n', // 4
-		// 	' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\n', // 5
-		// 	' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\n', // 6
-		// 	' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\n', // 7
-		// 	' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\n', // 8
-		// 	' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\n', // 9
-		// 	' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\n', // 10
-		// 	' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\n', // 11
-		// 	' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\n', // 12
-		// 	' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\0', // 13
-		// };
+		for (uint16_t i = w_newl-1; i < size-1; i += w_newl)
+			buf[i] = '\n';
+		buf[size-1] = '\0';
 
 
 		for (size_t i = 0; i < point_cloud.count; i++)
@@ -97,31 +84,36 @@ struct AvoSonar
 			// add by 0.5 to center it
 			const Vec2f point_pos = Vec2f(0.5, 0.5) + point_cloud[i] / width_m;
 
-			const Vec2T<size_t> char_pos = {
-				clamp<size_t>(roundf(fac_x * point_pos.x), 0, fac_x),
-				clamp<size_t>(roundf(fac_y * point_pos.y), 0, fac_y)
+			const Vec2zu char_pos = {
+				size_t( clamp<float>(roundf(fac_x * point_pos.x), 0, fac_x) ),
+				size_t( clamp<float>(roundf(fac_y * point_pos.y), 0, fac_y) )
 			};
 
 			// invert y so that +y points up
-			const size_t char_idx = (fac_y - char_pos.y) * width_incl + char_pos.x;
-			print_buffer[char_idx] = '#';
+			const size_t char_pos_y_up = fac_y - char_pos.y;
+
+			const size_t char_idx = char_pos_y_up * w_newl + char_pos.x;
+			buf[char_idx] = '#';
 		}
 
-		// Self : Self-Overlapped
-		print_buffer[6*32 + 15] =
-			(' ' == print_buffer[6*32 + 15])?
-			'S' : '$';
+		// mark center as S (self) if it's not overlapping a point, otherwise $
+		const size_t center_idx = (h/2) * w_newl + (fac_x/2);
+		buf[center_idx] = (' ' == buf[center_idx])? 'S' : '$';
+	}
 
+	/** \param width_m the total distance spanning the map in meters */
+	void print_map (float width_m = 1.00f)
+	{
+		// the width of print buffer including the line-ending newlines
+		constexpr size_t w_newl = 31 + 1;
+		constexpr size_t h = 13;
+
+		// yes, this is inefficient and wastes precious RAM
+		static char print_buf[w_newl * h];
+		populate_map_print_buf(print_buf, w_newl, h, width_m);
 
 		Serial.print(F("-====== POINT CLOUD MAP ======-\n"));
-		Serial.print(F("N = "));
-		Serial.print(point_cloud.count);
-		Serial.print(F(" | Newest: ("));
-		Serial.print(point_cloud[point_cloud.count-1].x);
-		Serial.print(F(", "));
-		Serial.print(point_cloud[point_cloud.count-1].y);
-		Serial.print(F(")\n"));
-		Serial.print(F("============ 100cm ============\n"));
-		Serial.print(print_buffer);
+		Serial.println(print_buf);
+		Serial.print(F("-=============================-\n"));
 	}
 };

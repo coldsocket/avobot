@@ -14,5 +14,5 @@ void setup()
 void loop()
 {
 	avobot.update();
-	delay(5);
+	delay(100);
 }

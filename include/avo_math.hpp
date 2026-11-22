@@ -6,6 +6,12 @@
 #include "fixed_point.hpp"
 
 
+constexpr float AVO_PI = 3.141592653589F;
+constexpr float AVO_TAU = 2 * AVO_PI;
+constexpr float AVO_RAD_TO_DEG = 360.0F / AVO_TAU;
+constexpr float AVO_DEG_TO_RAD = AVO_TAU / 360.0f;
+
+
 template<typename T>
 constexpr T avo_min (T a, T b) { return (a < b)? a : b; }
 template<typename T>

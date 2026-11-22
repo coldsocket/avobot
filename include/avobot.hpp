@@ -43,6 +43,6 @@ public:
 
 	void update () {
 		sonar.update(self);
-		afmotors.update();
+		// afmotors.update();
 	}
 };

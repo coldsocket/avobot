@@ -33,16 +33,19 @@ struct MotorPower
 
 struct ServoType
 {
-	float angle_max = 180;
-	float turnspeed = 0.8;
+	float angle_span = 180;
+	float turnspeed_s = 0.8;
 
 	u16 pw_min_us = 1'000;
 	u16 pw_max_us = 2'000;
 	u16 pw_span_us = pw_max_us - pw_min_us;
 
 	constexpr ServoType () = default;
-	constexpr ServoType (float _angle_max, float _turnspeed, u16 _pw_min, u16 _pw_max)
-	: angle_max(_angle_max), turnspeed(_turnspeed), pw_min_us(_pw_min), pw_max_us(_pw_max)
+	constexpr ServoType (float _angle_span, float _turnspeed, u16 _pw_min, u16 _pw_max)
+	: angle_span(_angle_span)
+	, turnspeed_s(_turnspeed)
+	, pw_min_us(_pw_min)
+	, pw_max_us(_pw_max)
 	{}
 };
 
@@ -50,11 +53,11 @@ struct Servo
 {
 	AOut out {nullptr, 0};
 
-	float angle_factor = 1;
+	float angle_fac = 1;
 	float angle = 0;
 	float angle_span = 180;
 	float angle_extremum = angle_span/2;
-	float turnspeed = 0.8f;
+	float turnspeed_s = 0.8f;
 
 	u16 pw_min_us = 1'000;
 	u16 pw_max_us = 2'000;
@@ -65,10 +68,17 @@ struct Servo
 	constexpr Servo () = default;
 	constexpr Servo (
 		const ServoType& type, AOut pin,
-		float _angle_factor = 1, bool _is_reversed = false
-	) : out(pin), angle_factor(_angle_factor), angle_span(type.angle_max)
-	  , angle_extremum(angle_span/2), turnspeed(type.turnspeed), pw_min_us(type.pw_min_us)
-	  , pw_max_us(type.pw_max_us), pw_span_us(type.pw_span_us), is_reversed(_is_reversed)
+		float _angle_fac = 1, bool _is_reversed = false
+	)
+	: out(pin)
+	, angle_fac(_angle_fac)
+	, angle_span(type.angle_span)
+	, angle_extremum(angle_span/2)
+	, turnspeed_s(type.turnspeed_s)
+	, pw_min_us(type.pw_min_us)
+	, pw_max_us(type.pw_max_us)
+	, pw_span_us(type.pw_span_us)
+	, is_reversed(_is_reversed)
 	{}
 
 	inline void set_pinmode () const {
@@ -77,7 +87,7 @@ struct Servo
 
 	constexpr u16 get_pw_us () const
 	{
-		const auto mul = angle_factor * ( (!is_reversed)? 1 : -1 );
+		const auto mul = angle_fac * ( (!is_reversed)? 1 : -1 );
 		const auto factored_angle = angle * mul;
 		const u16 pw_us = map_value<float>(
 			factored_angle, -angle_extremum, angle_extremum,

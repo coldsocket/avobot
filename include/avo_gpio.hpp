@@ -5,8 +5,8 @@
 
 struct PWMData
 {
-	float frequency_Hz = 490.20f;
-	u32 period_us = 1'000'000.0f / frequency_Hz;
+	float freq_Hz = 490.20f;
+	u32 period_us = 1'000'000.0f / freq_Hz;
 	u16 tick_max = 255;
 	const bool is_active_low = false;
 
@@ -16,22 +16,22 @@ struct PWMData
 		u16 _tick_max,
 		bool _is_active_low = false
 	)
-	: frequency_Hz(_frequency_Hz)
-	, period_us(1'000'000.0f / frequency_Hz)
+	: freq_Hz(_frequency_Hz)
+	, period_us(1'000'000.0f / freq_Hz)
 	, tick_max(_tick_max)
 	, is_active_low(_is_active_low)
 	{}
 
 
 	constexpr PWMData& set_frequency (float freq_Hz) {
-		frequency_Hz = freq_Hz;
-		period_us = 1'000'000.0f / frequency_Hz;
+		freq_Hz = freq_Hz;
+		period_us = 1'000'000.0f / freq_Hz;
 		return *this;
 	}
 
 	constexpr PWMData& set_period (u32 _period_us) {
 		period_us = _period_us;
-		frequency_Hz = 1'000'000.0f / _period_us;
+		freq_Hz = 1'000'000.0f / _period_us;
 		return *this;
 	}
 

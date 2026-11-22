@@ -20,7 +20,8 @@ struct UltraSonic
 
 
 	constexpr UltraSonic (DOut _trig, DIn _echo)
-	: trig(_trig), echo(_echo)
+	: trig(_trig)
+	, echo(_echo)
 	{}
 
 	inline void set_pinmode () const {
@@ -35,15 +36,15 @@ struct UltraSonic
 		// get dt with time out so it doesn't stall
 		const float dt_us = echo.pulse_in_us(HIGH, pulse_in_timeout_us);
 
-		// timed out
 		if (dt_us == 0) {
+			// timed out
 			dt_s = INFINITY;
 			dist_m = INFINITY;
 			return dist_m;
 		}
 
-		dt_s = dt_us * 0.00'000'1;
-		const float travel_time_s = dt_s * 0.5f;
+		dt_s = dt_us * 0.00'000'1f;
+		const auto travel_time_s = dt_s * 0.5f;
 
 		dist_m = travel_time_s * mach_mps + dist_offset_m;
 		return dist_m;
