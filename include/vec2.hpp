@@ -1,7 +1,7 @@
 #pragma once
 
 #include <math.h>
-#include "isize.hpp"
+#include "avo_primitives.hpp"
 
 
 template<typename T>
@@ -14,9 +14,10 @@ struct Vec2T
 	constexpr Vec2T (const T& _x, const T& _y) : x(_x), y(_y) {}
 
 	template<typename OtherT>
-	constexpr explicit Vec2T (const Vec2T<OtherT>& vec) : x(T(vec.x)), y(T(vec.y)) {}
+	constexpr explicit Vec2T (const Vec2T<OtherT>& other) : x(T(other.x)), y(T(other.y)) {}
 
 	constexpr bool operator == (const Vec2T& other) const { return (x == other.x) && (y == other.y); }
+	constexpr bool operator != (const Vec2T& other) const { return (x != other.x) && (y != other.y); }
 
 	constexpr Vec2T& operator += (const Vec2T& other) { x += other.x, y += other.y; return *this; }
 	constexpr Vec2T& operator -= (const Vec2T& other) { x -= other.x, y -= other.y; return *this; }
@@ -30,11 +31,13 @@ struct Vec2T
 
 	constexpr Vec2T& operator *= (const T& other) { x *= other, y *= other; return *this; }
 	constexpr Vec2T& operator /= (const T& other) { x /= other, y /= other; return *this; }
-	constexpr Vec2T  operator *  (const T& other) const { Vec2T v = *this; v *= other; return v; }
-	constexpr Vec2T  operator /  (const T& other) const { Vec2T v = *this; v /= other; return v; }
+	constexpr Vec2T  operator *  (const T& other) const { return *this * Vec2T(other, other); }
+	constexpr Vec2T  operator /  (const T& other) const { return *this / Vec2T(other, other); }
 
-	friend constexpr Vec2T operator * (const T& scl, const Vec2T& vec) { return vec * scl; }
-	friend constexpr Vec2T operator / (const T& scl, const Vec2T& vec) { return vec / scl; }
+	friend constexpr Vec2T operator * (const T& scl, const Vec2T& vec) { return Vec2T(scl, scl) * vec; }
+	friend constexpr Vec2T operator / (const T& scl, const Vec2T& vec) { return Vec2T(scl, scl) / vec; }
+
+	constexpr Vec2T operator + () const { return *this; }
 	constexpr Vec2T operator - () const { return Vec2T(-x, -y); }
 
 	constexpr T length_sq () const { return x*x + y*y; }
@@ -67,4 +70,4 @@ using Vec2f  = Vec2T<float>;
 
 using Vec2i  = Vec2T<int>;
 using Vec2zi = Vec2T<isize>;
-using Vec2zu = Vec2T<size_t>;
+using Vec2zu = Vec2T<usize>;

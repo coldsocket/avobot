@@ -32,21 +32,11 @@ struct AvoSonar
 		auto echoing_point = self.pos + Vec2f::from_angle(theta, dist);
 
 		if (point_cloud.count == point_cloud.capacity)
-			point_cloud.shift_fwd_delete_add(0, echoing_point);
+			point_cloud.shift_fwd_del_add(0, echoing_point);
 		else
-			push_point(echoing_point);
+			point_cloud.push_back(echoing_point);
 
 		print_map(0.5f);
-	}
-
-
-	bool push_point (Vec2f point) {
-		return point_cloud.push_back(point);
-	}
-
-	/** \return -1 = not found */
-	size_t pop_point (Vec2f point) {
-		return point_cloud.pop(point);
 	}
 
 	void center_to (Vec2f pos) {
