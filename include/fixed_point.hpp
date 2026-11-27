@@ -1,11 +1,6 @@
 #pragma once
 
-#include "avo_primitives.hpp"
-
-
-// signed bit shift left
-template<typename ValT, typename ShfT>
-constexpr ValT s_bshift_left (ValT val, ShfT shift) { return (shift >= 0)? (val << shift) : (val >> -shift); }
+#include "avo_typing.hpp"
 
 
 /**
@@ -33,8 +28,8 @@ struct fixedT
 	constexpr T val () const { return T(intern_val) / T(one_val); }
 
 	template<typename OtherIntT, size_t OtherBinExp, typename OtherMulT>
-	constexpr explicit fixedT (const fixedT<OtherIntT, OtherBinExp, OtherMulT>& other)
-	: intern_val(IntT(s_bshift_left(i64(other.intern_val), isize(bin_exp) - isize(other.bin_exp))))
+	constexpr explicit fixedT (const fixedT<OtherIntT, OtherBinExp, OtherMulT>& src)
+	: intern_val(IntT(f32(one_val) * f32(src.intern_val) / f32(src.one_val)))
 	{}
 
 	constexpr auto operator >  (const fixedT& other) const { return intern_val >  other.intern_val; };

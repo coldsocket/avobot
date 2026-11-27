@@ -28,7 +28,7 @@ struct AvoSonar
 		auto t_s = millis() * 0.00'1f;
 		view_pivot.angle = int(360 * t_s / 2.0f) % 360;
 
-		auto theta = AVO_DEG_TO_RAD * (view_pivot.angle + self.heading);
+		auto theta = DEG_TO_RAD * (view_pivot.angle + self.heading);
 		auto echoing_point = self.pos + Vec2f::from_angle(theta, dist);
 
 		if (point_cloud.count == point_cloud.capacity)

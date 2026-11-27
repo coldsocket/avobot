@@ -1,14 +1,14 @@
 #pragma once
 
 #include <math.h>
-#include "avo_primitives.hpp"
+#include "avo_typing.hpp"
 
 
 template<typename T>
 struct Vec2T
 {
-	T x = 0;
-	T y = 0;
+	T x;
+	T y;
 
 	constexpr Vec2T () = default;
 	constexpr Vec2T (const T& _x, const T& _y) : x(_x), y(_y) {}
@@ -29,8 +29,8 @@ struct Vec2T
 	constexpr Vec2T operator * (const Vec2T& other) const { Vec2T v = *this; v *= other; return v; }
 	constexpr Vec2T operator / (const Vec2T& other) const { Vec2T v = *this; v /= other; return v; }
 
-	constexpr Vec2T& operator *= (const T& other) { x *= other, y *= other; return *this; }
-	constexpr Vec2T& operator /= (const T& other) { x /= other, y /= other; return *this; }
+	constexpr Vec2T& operator *= (const T& other) { return *this *= Vec2T(other, other); }
+	constexpr Vec2T& operator /= (const T& other) { return *this /= Vec2T(other, other); }
 	constexpr Vec2T  operator *  (const T& other) const { return *this * Vec2T(other, other); }
 	constexpr Vec2T  operator /  (const T& other) const { return *this / Vec2T(other, other); }
 
@@ -42,12 +42,12 @@ struct Vec2T
 
 	constexpr T length_sq () const { return x*x + y*y; }
 	constexpr T length    () const { return sqrt(length_sq()); }
-	constexpr T inv_length_sq () const { return 1/length_sq(); }
-	constexpr T inv_length    () const { return 1/length(); }
+	constexpr T inv_length_sq () const { return T(1) / length_sq(); }
+	constexpr T inv_length    () const { return T(1) / length(); }
 
 	constexpr T dot   (const Vec2T& other) const { return x * other.x + y * other.y; }
 	constexpr T cross (const Vec2T& other) const { return x * other.y - y * other.x; }
-	constexpr T rel_cos (const Vec2T& other) const { return dot (other) / (length() * other.length()); }
+	constexpr T rel_cos (const Vec2T& other) const { return dot  (other) / (length() * other.length()); }
 	constexpr T rel_sin (const Vec2T& other) const { return cross(other) / (length() * other.length()); }
 
 	constexpr T angle () const { return atan2(y, x); }
@@ -59,7 +59,7 @@ struct Vec2T
 		return len * Vec2T(cos(angle), sin(angle));
 	}
 
-	constexpr Vec2T normalize () const { return Vec2T(x / length(), y / length()); }
+	constexpr Vec2T normalize () const { return *this / length(); }
 
 	constexpr bool is_finite () const { return isfinite(x) and isfinite(y); }
 	constexpr bool is_normalized () const { return length_sq() == T(1); }
